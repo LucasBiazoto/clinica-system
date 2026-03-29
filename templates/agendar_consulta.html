@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Agendar Consulta</title>
+
+<style>
+
+body{
+    font-family: Arial;
+    margin:40px;
+}
+
+.horario{
+    padding:10px;
+    border:1px solid #ccc;
+    display:inline-block;
+    margin:5px;
+    cursor:pointer;
+}
+
+.ocupado{
+    background:#f8d7da;
+}
+
+.livre{
+    background:#d4edda;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Agendar Consulta</h2>
+
+<label>Paciente</label>
+
+<select id="paciente">
+{% for paciente in pacientes %}
+<option value="{{ paciente.id }}">{{ paciente.nome }}</option>
+{% endfor %}
+</select>
+
+<br><br>
+
+<label>Médico</label>
+
+<select id="medico">
+{% for medico in medicos %}
+<option value="{{ medico.id }}">{{ medico.nome }}</option>
+{% endfor %}
+</select>
+
+<br><br>
+
+<label>Data</label>
+
+<input type="date" id="data">
+
+<br><br>
+
+<button onclick="buscarHorarios()">Buscar horários</button>
+
+<br><br>
+
+<div id="horarios"></div>
+
+<script>
+
+function buscarHorarios(){
+
+    let medico = document.getElementById("medico").value
+    let data = document.getElementById("data").value
+
+    fetch(`/agenda/horarios/${medico}/${data}/`)
+    .then(response => response.json())
+    .then(dados => {
+
+        let div = document.getElementById("horarios")
+        div.innerHTML = ""
+
+        dados.forEach(h => {
+
+            let box = document.createElement("div")
+
+            box.classList.add("horario")
+
+            box.innerText = h.hora
+
+            if(h.ocupado){
+
+                box.classList.add("ocupado")
+
+            }else{
+
+                box.classList.add("livre")
+
+                box.onclick = () => agendar(h.hora)
+
+            }
+
+            div.appendChild(box)
+
+        })
+
+    })
+
+}
+
+
+function agendar(hora){
+
+    let paciente = document.getElementById("paciente").value
+    let medico = document.getElementById("medico").value
+    let data = document.getElementById("data").value
+
+    fetch("/agenda/criar-consulta/",{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+
+        body:JSON.stringify({
+            paciente:paciente,
+            medico:medico,
+            data:data,
+            hora:hora
+        })
+
+    })
+    .then(response => response.json())
+    .then(res => {
+
+        alert("Consulta agendada!")
+
+        location.reload()
+
+    })
+
+}
+
+
+function getCookie(name){
+
+    let cookieValue = null
+
+    if(document.cookie && document.cookie !== ''){
+
+        const cookies = document.cookie.split(';')
+
+        for(let i=0;i<cookies.length;i++){
+
+            const cookie = cookies[i].trim()
+
+            if(cookie.substring(0,name.length+1) === (name + '=')){
+
+                cookieValue = decodeURIComponent(cookie.substring(name.length+1))
+
+                break
+
+            }
+
+        }
+
+    }
+
+    return cookieValue
+
+}
+
+</script>
+
+</body>
+</html>

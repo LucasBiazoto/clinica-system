@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Cadastrar Médico</h2>
+
+<form method="POST">
+
+{% csrf_token %}
+
+<label>Nome</label>
+<input type="text" name="nome">
+
+<label>Especialidade</label>
+<input type="text" name="especialidade">
+
+<label>Telefone</label>
+<input type="text" name="telefone">
+
+<button type="submit">Salvar</button>
+
+</form>
+
+{% endblock %}

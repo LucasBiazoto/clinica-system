@@ -1,0 +1,128 @@
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from twilio.twiml.messaging_response import MessagingResponse
+from .models import ConversaWhatsApp, ConfiguracaoIA, RespostaFAQ
+import openai
+
+openai.api_key = "SUA_API_KEY_AQUI"
+
+
+def buscar_resposta_faq(mensagem):
+    mensagem = mensagem.lower()
+    respostas = RespostaFAQ.objects.all()
+
+    for item in respostas:
+        if item.pergunta.lower() in mensagem:
+            return item.resposta
+
+    return None
+
+
+@csrf_exempt
+def webhook_whatsapp(request):
+    if request.method == 'POST':
+
+        mensagem = request.POST.get('Body', '').strip()
+        telefone = request.POST.get('From', '')
+
+        print("📲 NOVA MENSAGEM")
+        print(f"Telefone: {telefone}")
+        print(f"Mensagem: {mensagem}")
+
+        conversa, created = ConversaWhatsApp.objects.get_or_create(
+            telefone=telefone
+        )
+
+        # 🔑 pega config da IA
+        config = ConfiguracaoIA.objects.first()
+
+        if not config:
+            nome_ia = "Sofia"
+            tom = "Responda de forma educada e profissional."
+        else:
+            nome_ia = config.nome_ia
+            tom = config.tom
+
+        resp = MessagingResponse()
+
+        # 🔁 INICIO
+        if conversa.etapa == 'inicio':
+            resp.message(
+                f"Olá! 👋\n"
+                f"Sou a {nome_ia}, assistente virtual da clínica 😊\n\n"
+                "Digite:\n"
+                "1 - Agendar consulta\n"
+                "2 - Tirar dúvidas"
+            )
+            conversa.etapa = 'menu'
+
+        # 📋 MENU
+        elif conversa.etapa == 'menu':
+            if mensagem == '1':
+                resp.message(
+                    "Perfeito! 👩‍⚕️\n"
+                    "Vou te encaminhar para nossa atendente.\n"
+                    "Aguarde um instante..."
+                )
+                conversa.etapa = 'humano'
+
+            elif mensagem == '2':
+                resp.message("Pode me perguntar 😊")
+                conversa.etapa = 'ia'
+
+            else:
+                resp.message("❌ Opção inválida.\nDigite 1 ou 2.")
+
+        # 🤖 IA SEGURA
+        elif conversa.etapa == 'ia':
+
+            # 🔍 FAQ primeiro
+            resposta_faq = buscar_resposta_faq(mensagem)
+
+            if resposta_faq:
+                resp.message(resposta_faq)
+
+            else:
+                try:
+                    resposta_ia = openai.ChatCompletion.create(
+                        model="gpt-4o-mini",
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": (
+                                    f"Você é a {nome_ia}, assistente virtual de uma clínica. "
+                                    f"{tom} "
+                                    "Nunca dê diagnósticos médicos. "
+                                    "Se não souber, diga que um atendente irá ajudar."
+                                )
+                            },
+                            {"role": "user", "content": mensagem}
+                        ],
+                        max_tokens=100
+                    )
+
+                    resposta = resposta_ia['choices'][0]['message']['content']
+
+                    resp.message(resposta)
+
+                except Exception as e:
+                    print("Erro IA:", e)
+
+                    resp.message(
+                        "Não consegui te responder agora 😕\n"
+                        "Vou te encaminhar para nossa atendente."
+                    )
+                    conversa.etapa = 'humano'
+
+        # 👩‍⚕️ HUMANO
+        elif conversa.etapa == 'humano':
+            resp.message(
+                "👩‍⚕️ Nossa atendente irá te responder em breve.\n"
+                "Por favor aguarde."
+            )
+
+        conversa.save()
+
+        return HttpResponse(str(resp), content_type='application/xml')
+
+    return HttpResponse("Método não permitido", status=405)

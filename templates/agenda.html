@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Agenda do Dia</h1>
+
+<h3>{{ hoje }}</h3>
+
+<table border="1" width="100%" cellpadding="10">
+
+<tr>
+<th>Hora</th>
+<th>Paciente</th>
+<th>Status</th>
+</tr>
+
+{% for consulta in consultas %}
+
+<tr>
+
+<td>{{ consulta.hora }}</td>
+
+<td>{{ consulta.paciente.nome }}</td>
+
+<td>{{ consulta.status }}</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+<td colspan="3">Nenhuma consulta hoje</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% endblock %}

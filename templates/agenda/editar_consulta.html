@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>Editar</h2>
+
+<form method="POST">
+{% csrf_token %}
+
+<input type="date" name="data" value="{{ consulta.data|date:'Y-m-d' }}">
+<input type="time" name="hora" value="{{ consulta.hora|time:'H:i' }}">
+
+<select name="duracao">
+<option value="30" {% if consulta.duracao == 30 %}selected{% endif %}>30</option>
+<option value="60" {% if consulta.duracao == 60 %}selected{% endif %}>60</option>
+<option value="120" {% if consulta.duracao == 120 %}selected{% endif %}>120</option>
+</select>
+
+<input type="number" name="valor" value="{{ consulta.valor }}">
+
+<button>Salvar</button>
+
+</form>
+
+{% endblock %}

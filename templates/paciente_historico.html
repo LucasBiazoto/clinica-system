@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Histórico do Paciente</title>
+
+<style>
+
+body{
+    font-family: Arial;
+    margin:40px;
+}
+
+.box{
+    border:1px solid #ddd;
+    padding:20px;
+    border-radius:6px;
+    margin-bottom:20px;
+}
+
+.timeline{
+    border-left:3px solid #2e86de;
+    padding-left:20px;
+}
+
+.evento{
+    margin-bottom:25px;
+}
+
+.data{
+    font-weight:bold;
+    color:#2e86de;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="box">
+
+<h2>Paciente: {{ paciente.nome }}</h2>
+
+<p><b>Telefone:</b> {{ paciente.telefone }}</p>
+
+<a href="/prontuario/novo/{{ paciente.id }}/">
+<button>Novo prontuário</button>
+</a>
+
+</div>
+
+
+
+<div class="box">
+
+<h3>Linha do Tempo Médica</h3>
+
+<div class="timeline">
+
+{% for evento in eventos %}
+
+<div class="evento">
+
+<div class="data">
+{{ evento.data }}
+</div>
+
+{% if evento.tipo == "consulta" %}
+
+Consulta com Dr. {{ evento.medico }}
+
+<br>
+
+Horário: {{ evento.hora }}
+
+{% endif %}
+
+
+{% if evento.tipo == "prontuario" %}
+
+<b>Diagnóstico:</b>
+
+<br>
+
+{{ evento.diagnostico }}
+
+<br><br>
+
+<b>Tratamento:</b>
+
+<br>
+
+{{ evento.tratamento }}
+
+{% endif %}
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+</body>
+</html>

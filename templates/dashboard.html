@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Dashboard da Clínica</h2>
+
+<div style="display:flex; gap:30px; margin-bottom:30px;">
+
+<div>
+<h3>Consultas Hoje</h3>
+<p>{{ consultas_hoje }}</p>
+</div>
+
+<div>
+<h3>Total de Pacientes</h3>
+<p>{{ total_pacientes }}</p>
+</div>
+
+<div>
+<h3>Faturamento Hoje</h3>
+<p>R$ {{ faturamento_hoje }}</p>
+</div>
+
+<div>
+<h3>Faturamento Total</h3>
+<p>R$ {{ faturamento_total }}</p>
+</div>
+
+</div>
+
+<h3>Consultas por mês</h3>
+
+<canvas id="graficoConsultas" width="400" height="150"></canvas>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+const ctx = document.getElementById('graficoConsultas');
+
+new Chart(ctx, {
+
+type: 'bar',
+
+data: {
+
+labels: [
+'Jan','Fev','Mar','Abr','Mai','Jun',
+'Jul','Ago','Set','Out','Nov','Dez'
+],
+
+datasets: [{
+
+label: 'Consultas',
+
+data: {{ consultas_mes }},
+
+borderWidth: 1
+
+}]
+
+},
+
+options: {
+
+scales: {
+
+y: {
+
+beginAtZero: true
+
+}
+
+}
+
+}
+
+});
+
+</script>
+
+{% endblock %}

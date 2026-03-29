@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Médicos da Clínica</h2>
+
+<a href="/criar-medico/">Cadastrar Médico</a>
+
+<table border="1">
+
+<tr>
+<th>Nome</th>
+<th>Especialidade</th>
+<th>Telefone</th>
+</tr>
+
+{% for medico in medicos %}
+
+<tr>
+<td>{{ medico.nome }}</td>
+<td>{{ medico.especialidade }}</td>
+<td>{{ medico.telefone }}</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% endblock %}

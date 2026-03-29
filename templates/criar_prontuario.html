@@ -1,0 +1,39 @@
+<h2>Novo Prontuário</h2>
+
+<p>Paciente: {{ paciente.nome }}</p>
+
+<form method="post">
+
+{% csrf_token %}
+
+<label>Médico</label>
+<select name="medico">
+
+{% for medico in medicos %}
+
+<option value="{{ medico.id }}">{{ medico.nome }}</option>
+
+{% endfor %}
+
+</select>
+
+<br><br>
+
+<label>Queixa principal</label><br>
+<textarea name="queixa"></textarea>
+
+<br><br>
+
+<label>Diagnóstico</label><br>
+<textarea name="diagnostico"></textarea>
+
+<br><br>
+
+<label>Tratamento</label><br>
+<textarea name="tratamento"></textarea>
+
+<br><br>
+
+<button type="submit">Salvar prontuário</button>
+
+</form>

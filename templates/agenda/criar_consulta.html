@@ -1,0 +1,67 @@
+<h2>Nova Consulta / Bloqueio</h2>
+
+{% if messages %}
+    {% for message in messages %}
+        <p style="color:red;">{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+
+    <label>Tipo:</label>
+    <select name="tipo">
+        <option value="consulta">Consulta</option>
+        <option value="bloqueio">Bloqueio</option>
+    </select>
+    <br><br>
+
+    <label>Paciente:</label>
+    <select name="paciente">
+        <option value="">---------</option>
+        {% for p in pacientes %}
+            <option value="{{ p.id }}">{{ p.nome }}</option>
+        {% endfor %}
+    </select>
+    <br><br>
+
+    <label>Médico:</label>
+    <select name="medico">
+        {% for m in medicos %}
+            <option value="{{ m.id }}">{{ m.nome }}</option>
+        {% endfor %}
+    </select>
+    <br><br>
+
+    <label>Data:</label>
+    <input type="date" name="data" value="{{ data_inicial|date:'Y-m-d' }}">
+    <br><br>
+
+    <label>Hora:</label>
+    <input type="time" name="hora" value="{{ hora_inicial }}">
+    <br><br>
+
+    <label>Duração:</label>
+    <select name="duracao">
+        <option value="30">30 min</option>
+        <option value="60">1 hora</option>
+        <option value="90">1h30</option>
+        <option value="120">2 horas</option>
+        <option value="180">3 horas</option>
+    </select>
+    <br><br>
+
+    <label>Status:</label>
+    <select name="status">
+        <option value="agendado">Agendado</option>
+        <option value="confirmado">Confirmado</option>
+        <option value="cancelado">Cancelado</option>
+    </select>
+    <br><br>
+
+    <label>Valor:</label>
+    <input type="text" name="valor">
+    <br><br>
+
+    <button type="submit">Salvar</button>
+</form>
