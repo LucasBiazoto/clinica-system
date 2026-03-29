@@ -3,8 +3,10 @@ from django.views.decorators.csrf import csrf_exempt
 from twilio.twiml.messaging_response import MessagingResponse
 from .models import ConversaWhatsApp, ConfiguracaoIA, RespostaFAQ
 import openai
+import os
 
-openai.api_key = "SUA_API_KEY_AQUI"
+# 🔐 pega do ambiente (Render)
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 def buscar_resposta_faq(mensagem):
@@ -33,7 +35,6 @@ def webhook_whatsapp(request):
             telefone=telefone
         )
 
-        # 🔑 pega config da IA
         config = ConfiguracaoIA.objects.first()
 
         if not config:
@@ -45,7 +46,7 @@ def webhook_whatsapp(request):
 
         resp = MessagingResponse()
 
-        # 🔁 INICIO
+        # INICIO
         if conversa.etapa == 'inicio':
             resp.message(
                 f"Olá! 👋\n"
@@ -56,7 +57,7 @@ def webhook_whatsapp(request):
             )
             conversa.etapa = 'menu'
 
-        # 📋 MENU
+        # MENU
         elif conversa.etapa == 'menu':
             if mensagem == '1':
                 resp.message(
@@ -73,10 +74,9 @@ def webhook_whatsapp(request):
             else:
                 resp.message("❌ Opção inválida.\nDigite 1 ou 2.")
 
-        # 🤖 IA SEGURA
+        # IA
         elif conversa.etapa == 'ia':
 
-            # 🔍 FAQ primeiro
             resposta_faq = buscar_resposta_faq(mensagem)
 
             if resposta_faq:
@@ -98,7 +98,7 @@ def webhook_whatsapp(request):
                             },
                             {"role": "user", "content": mensagem}
                         ],
-                        max_tokens=100
+                        max_tokens=120
                     )
 
                     resposta = resposta_ia['choices'][0]['message']['content']
@@ -114,7 +114,7 @@ def webhook_whatsapp(request):
                     )
                     conversa.etapa = 'humano'
 
-        # 👩‍⚕️ HUMANO
+        # HUMANO
         elif conversa.etapa == 'humano':
             resp.message(
                 "👩‍⚕️ Nossa atendente irá te responder em breve.\n"
