@@ -2,11 +2,12 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from twilio.twiml.messaging_response import MessagingResponse
 from .models import ConversaWhatsApp, ConfiguracaoIA, RespostaFAQ
-import openai
+
+from openai import OpenAI
 import os
 
-# 🔐 pega do ambiente (Render)
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# 🔑 cliente OpenAI
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 def buscar_resposta_faq(mensagem):
@@ -31,10 +32,14 @@ def webhook_whatsapp(request):
         print(f"Telefone: {telefone}")
         print(f"Mensagem: {mensagem}")
 
+        # 🔍 DEBUG
+        print("🔑 OPENAI KEY:", os.getenv("OPENAI_API_KEY"))
+
         conversa, created = ConversaWhatsApp.objects.get_or_create(
             telefone=telefone
         )
 
+        # 🔑 CONFIG IA
         config = ConfiguracaoIA.objects.first()
 
         if not config:
@@ -46,7 +51,7 @@ def webhook_whatsapp(request):
 
         resp = MessagingResponse()
 
-        # INICIO
+        # 🔁 INICIO
         if conversa.etapa == 'inicio':
             resp.message(
                 f"Olá! 👋\n"
@@ -57,7 +62,7 @@ def webhook_whatsapp(request):
             )
             conversa.etapa = 'menu'
 
-        # MENU
+        # 📋 MENU
         elif conversa.etapa == 'menu':
             if mensagem == '1':
                 resp.message(
@@ -74,7 +79,7 @@ def webhook_whatsapp(request):
             else:
                 resp.message("❌ Opção inválida.\nDigite 1 ou 2.")
 
-        # IA
+        # 🤖 IA
         elif conversa.etapa == 'ia':
 
             resposta_faq = buscar_resposta_faq(mensagem)
@@ -84,7 +89,7 @@ def webhook_whatsapp(request):
 
             else:
                 try:
-                    resposta_ia = openai.ChatCompletion.create(
+                    resposta_ia = client.chat.completions.create(
                         model="gpt-4o-mini",
                         messages=[
                             {
@@ -96,17 +101,23 @@ def webhook_whatsapp(request):
                                     "Se não souber, diga que um atendente irá ajudar."
                                 )
                             },
-                            {"role": "user", "content": mensagem}
+                            {
+                                "role": "user",
+                                "content": mensagem
+                            }
                         ],
-                        max_tokens=120
+                        max_tokens=150
                     )
 
-                    resposta = resposta_ia['choices'][0]['message']['content']
+                    resposta = resposta_ia.choices[0].message.content
+
+                    print("🤖 RESPOSTA IA:", resposta)
 
                     resp.message(resposta)
 
                 except Exception as e:
-                    print("Erro IA:", e)
+                    print("🔥 ERRO OPENAI:")
+                    print(str(e))
 
                     resp.message(
                         "Não consegui te responder agora 😕\n"
@@ -114,7 +125,7 @@ def webhook_whatsapp(request):
                     )
                     conversa.etapa = 'humano'
 
-        # HUMANO
+        # 👩‍⚕️ HUMANO
         elif conversa.etapa == 'humano':
             resp.message(
                 "👩‍⚕️ Nossa atendente irá te responder em breve.\n"
