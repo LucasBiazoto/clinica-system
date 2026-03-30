@@ -20,26 +20,43 @@ def webhook_whatsapp(request):
 
             resposta = MessagingResponse()
 
-            # 🔥 chamada simples e compatível
-            completion = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "Você é um atendente de clínica educado e direto."},
-                    {"role": "user", "content": mensagem}
-                ]
-            )
+            try:
+                # 🤖 TENTA USAR IA
+                completion = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": "Você é um atendente de clínica médica educado e direto."},
+                        {"role": "user", "content": mensagem}
+                    ]
+                )
 
-            reply = completion.choices[0].message.content
+                reply = completion.choices[0].message.content
+
+            except Exception as e:
+                # ⚠️ FALLBACK AUTOMÁTICO
+                print("ERRO OPENAI:", str(e))
+
+                if "oi" in mensagem.lower():
+                    reply = "Olá! 👋 Como posso te ajudar?\nDigite: consulta, horário ou exames."
+                
+                elif "consulta" in mensagem.lower():
+                    reply = "Para agendar uma consulta, me informe seu nome completo 📅"
+                
+                elif "horario" in mensagem.lower() or "horário" in mensagem.lower():
+                    reply = "Atendemos de segunda a sexta, das 08h às 18h 🕒"
+                
+                else:
+                    reply = "No momento estou sem IA 🤖, mas posso te ajudar.\nDigite: consulta"
 
             resposta.message(reply)
 
             return HttpResponse(str(resposta), content_type="text/xml")
 
         except Exception as e:
-            print("ERRO DETALHADO:", str(e))
+            print("ERRO GERAL:", str(e))
 
             resposta = MessagingResponse()
-            resposta.message("Erro no servidor 😢")
+            resposta.message("Erro no servidor 😢 tente novamente")
 
             return HttpResponse(str(resposta), content_type="text/xml")
 
