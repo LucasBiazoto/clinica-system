@@ -1,18 +1,18 @@
 import os
 from pathlib import Path
 
-# 📁 base do projeto
+# 📁 Base do projeto
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# 🔐 segurança
-SECRET_KEY = 'django-insecure-sua-chave-aqui'
+# 🔐 Segurança
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-chave-temporaria')
 
-# 🔧 produção
+# ⚙️ Ambiente (Render)
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = ["*"]
 
-# 📦 apps
+# 📦 Apps instalados
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -26,10 +26,13 @@ INSTALLED_APPS = [
     'financeiro',
 ]
 
-# ⚙️ middleware
+# ⚙️ Middlewares
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # importante pro Render
+
+    # 🔥 WhiteNoise (necessário no Render)
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -40,6 +43,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'core.urls'
 
+# 🎨 Templates
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -56,9 +60,10 @@ TEMPLATES = [
     },
 ]
 
+# 🚀 WSGI
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# 🗄️ banco (sqlite por enquanto)
+# 🗄️ Banco de dados (SQLite por enquanto)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -66,16 +71,35 @@ DATABASES = {
     }
 }
 
-# 🌍 idioma
+# 🌎 Internacionalização
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
 
 USE_I18N = True
 USE_TZ = True
 
-# 📂 arquivos estáticos
+# 🔐 Senhas
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+# 📂 Arquivos estáticos (IMPORTANTE PRO RENDER)
 STATIC_URL = '/static/'
+
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# 🔥 whitenoise
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# 🧠 Campo padrão
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
