@@ -1,156 +1,41 @@
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from twilio.twiml.messaging_response import MessagingResponse
-from .models import ConversaWhatsApp, ConfiguracaoIA, RespostaFAQ
-
-from openai import OpenAI
-import os
-import traceback
-
-# 🔑 Cliente OpenAI
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-
-def buscar_resposta_faq(mensagem):
-    mensagem = mensagem.lower()
-    respostas = RespostaFAQ.objects.all()
-
-    for item in respostas:
-        if item.pergunta.lower() in mensagem:
-            return item.resposta
-
-    return None
 
 
 @csrf_exempt
 def webhook_whatsapp(request):
-    if request.method == 'POST':
+    if request.method == "POST":
+        try:
+            # 📩 Dados recebidos do Twilio
+            mensagem = request.POST.get('Body', '').strip().lower()
+            numero = request.POST.get('From', '')
 
-        mensagem = request.POST.get('Body', '').strip()
-        telefone = request.POST.get('From', '')
+            print("=== NOVA MENSAGEM ===")
+            print("Telefone:", numero)
+            print("Mensagem:", mensagem)
 
-        print("\n📲 NOVA MENSAGEM")
-        print(f"Telefone: {telefone}")
-        print(f"Mensagem: {mensagem}")
+            # 🤖 Cria resposta Twilio
+            resposta = MessagingResponse()
 
-        print("🔑 OPENAI KEY:", os.getenv("OPENAI_API_KEY"))
-
-        conversa, created = ConversaWhatsApp.objects.get_or_create(
-            telefone=telefone
-        )
-
-        # 🔧 Garante valor padrão
-        if not conversa.etapa:
-            conversa.etapa = 'inicio'
-
-        # 🔑 Config IA
-        config = ConfiguracaoIA.objects.first()
-
-        if not config:
-            nome_ia = "Sofia"
-            tom = "Responda de forma educada e profissional."
-        else:
-            nome_ia = config.nome_ia
-            tom = config.tom
-
-        resp = MessagingResponse()
-
-        # =========================
-        # 🔁 INICIO
-        # =========================
-        if conversa.etapa == 'inicio':
-            resp.message(
-                f"Olá! 👋\n"
-                f"Sou a {nome_ia}, assistente virtual da clínica 😊\n\n"
-                "Digite:\n"
-                "1 - Agendar consulta\n"
-                "2 - Tirar dúvidas"
-            )
-            conversa.etapa = 'menu'
-
-        # =========================
-        # 📋 MENU
-        # =========================
-        elif conversa.etapa == 'menu':
-            if mensagem == '1':
-                resp.message(
-                    "Perfeito! 👩‍⚕️\n"
-                    "Vou te encaminhar para nossa atendente.\n"
-                    "Aguarde um instante..."
-                )
-                conversa.etapa = 'humano'
-
-            elif mensagem == '2':
-                resp.message("Pode me perguntar 😊")
-                conversa.etapa = 'ia'
-
+            # 💬 Lógica simples (sem erro)
+            if mensagem in ["oi", "ola", "olá"]:
+                resposta.message("Olá! 👋 Bem-vindo à clínica.\nComo posso te ajudar?")
+            
+            elif "consulta" in mensagem:
+                resposta.message("Para agendar uma consulta, me informe seu nome completo 📅")
+            
+            elif "horario" in mensagem or "horário" in mensagem:
+                resposta.message("Nosso horário é de segunda a sexta, das 08h às 18h 🕒")
+            
             else:
-                resp.message("❌ Opção inválida.\nDigite 1 ou 2.")
+                resposta.message("Não entendi 🤔\nDigite:\n- oi\n- consulta\n- horario")
 
-        # =========================
-        # 🤖 IA
-        # =========================
-        elif conversa.etapa == 'ia':
+            # ✅ Retorno obrigatório para Twilio
+            return HttpResponse(str(resposta), content_type="text/xml")
 
-            resposta_faq = buscar_resposta_faq(mensagem)
-
-            if resposta_faq:
-                resp.message(resposta_faq)
-
-            else:
-                try:
-                    resposta_ia = client.chat.completions.create(
-                        model="gpt-4o-mini",
-                        messages=[
-                            {
-                                "role": "system",
-                                "content": (
-                                    f"Você é a {nome_ia}, assistente virtual de uma clínica. "
-                                    f"{tom} "
-                                    "Nunca dê diagnósticos médicos. "
-                                    "Se não souber, diga que um atendente irá ajudar."
-                                )
-                            },
-                            {"role": "user", "content": mensagem}
-                        ],
-                        max_tokens=150
-                    )
-
-                    print("🧠 RESPOSTA COMPLETA OPENAI:")
-                    print(resposta_ia)
-
-                    # ✅ SAFE PARSE (evita erro 500)
-                    resposta = "Desculpe, não consegui entender. Pode reformular?"
-
-                    if resposta_ia and resposta_ia.choices:
-                        escolha = resposta_ia.choices[0]
-
-                        if escolha.message and escolha.message.content:
-                            resposta = escolha.message.content
-
-                    resp.message(resposta)
-
-                except Exception as e:
-                    print("\n🔥 ERRO OPENAI DETALHADO:")
-                    traceback.print_exc()
-
-                    resp.message(
-                        "Não consegui te responder agora 😕\n"
-                        "Vou te encaminhar para nossa atendente."
-                    )
-                    conversa.etapa = 'humano'
-
-        # =========================
-        # 👩‍⚕️ HUMANO
-        # =========================
-        elif conversa.etapa == 'humano':
-            resp.message(
-                "👩‍⚕️ Nossa atendente irá te responder em breve.\n"
-                "Por favor aguarde."
-            )
-
-        conversa.save()
-
-        return HttpResponse(str(resp), content_type='application/xml')
+        except Exception as e:
+            print("ERRO:", str(e))
+            return HttpResponse("Erro interno", status=500)
 
     return HttpResponse("Método não permitido", status=405)
