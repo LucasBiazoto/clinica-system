@@ -1,17 +1,26 @@
-from twilio.rest import Client
-
-ACCOUNT_SID = 'SEU_SID'
-AUTH_TOKEN = 'SEU_TOKEN'
-
-client = Client(ACCOUNT_SID, AUTH_TOKEN)
+from .whatsapp import enviar_whatsapp
+from django.shortcuts import redirect
+from .models import ConversaWhatsApp
 
 
-def enviar_whatsapp(telefone, mensagem):
-    message = client.messages.create(
-        from_='whatsapp:+14155238886',
-        body=mensagem,
-        to=f'whatsapp:{telefone}'
-    )
+def responder_conversa(request, paciente_id):
+    if request.method == 'POST':
+        mensagem = request.POST.get('mensagem')
 
-    print("WhatsApp enviado com sucesso!")
-    print("SID:", message.sid)  
+        conversa = ConversaWhatsApp.objects.filter(
+            paciente__id=paciente_id
+        ).last()
+
+        if conversa:
+            numero = conversa.paciente.telefone
+
+            # 🔥 ENVIO REAL
+            enviado = enviar_whatsapp(numero, mensagem)
+
+            if enviado:
+                conversa.resposta = mensagem
+                conversa.save()
+            else:
+                print("Falha ao enviar mensagem")
+
+    return redirect('painel')
