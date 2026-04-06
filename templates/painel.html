@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f8e9ee;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background: #fff;
+            padding: 20px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: #d63384;
+            border-bottom: 3px solid #d4af37;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .card {
+            background: #fff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            border-left: 6px solid #d63384;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .telefone {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .mensagem {
+            margin-top: 5px;
+            color: #555;
+        }
+
+        .resposta {
+            margin-top: 5px;
+            color: #28a745;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .btn-chat {
+            background: #d63384;
+            color: #fff;
+        }
+
+        .btn-finalizar {
+            background: #d4af37;
+            color: #000;
+        }
+
+        .top-bar {
+            text-align: right;
+            margin-bottom: 10px;
+        }
+
+        .logout {
+            text-decoration: none;
+            color: #d63384;
+            font-weight: bold;
+        }
+
+        .empty {
+            text-align: center;
+            color: #777;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        💖 {{ clinica.nome }}
+    </div>
+
+    <div class="container">
+
+        <div class="top-bar">
+            <a href="/logout/" class="logout">Sair</a>
+        </div>
+
+        {% if conversas %}
+            {% for conversa in conversas %}
+                <div class="card">
+
+                    <div class="telefone">
+                        📱 {{ conversa.paciente.telefone }}
+                    </div>
+
+                    <div class="mensagem">
+                        💬 {{ conversa.mensagem }}
+                    </div>
+
+                    {% if conversa.resposta %}
+                        <div class="resposta">
+                            🤖 {{ conversa.resposta }}
+                        </div>
+                    {% endif %}
+
+                    <!-- 🔥 CORRETO -->
+                    <a href="/chat/{{ conversa.paciente.id }}/" class="btn btn-chat">
+                        Abrir Chat
+                    </a>
+
+                    <a href="/finalizar/{{ conversa.paciente.id }}/" class="btn btn-finalizar">
+                        Finalizar
+                    </a>
+
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty">
+                Nenhuma conversa ainda
+            </div>
+        {% endif %}
+
+    </div>
+
+</body>
+</html>
