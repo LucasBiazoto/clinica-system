@@ -1,26 +1,21 @@
 import os
 from pathlib import Path
+import dj_database_url
 
-# 📁 Base do projeto
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ================================
+# SECURITY
+# ================================
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev')
 
-# =========================
-# 🔐 SEGURANÇA
-# =========================
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-chave-temporaria')
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-DEBUG = os.getenv("DEBUG", "False") == "True"
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
-ALLOWED_HOSTS = os.getenv(
-    "ALLOWED_HOSTS",
-    "127.0.0.1,localhost"
-).split(",")
-
-
-# =========================
-# 📦 APPS
-# =========================
+# ================================
+# APPS
+# ================================
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -29,21 +24,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # seus apps
     'agenda',
-    'pacientes',
-    'medicos',
-    'usuarios',
     'financeiro',
+    'medicos',
+    'pacientes',
+    'prontuario',
 ]
 
-
-# =========================
-# ⚙️ MIDDLEWARE
-# =========================
+# ================================
+# MIDDLEWARE
+# ================================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-
-    # 🔥 WhiteNoise (produção)
     'whitenoise.middleware.WhiteNoiseMiddleware',
 
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -54,17 +47,15 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-
-# =========================
-# 🌐 URLS / WSGI
-# =========================
+# ================================
+# URLS
+# ================================
 ROOT_URLCONF = 'core.urls'
 WSGI_APPLICATION = 'core.wsgi.application'
 
-
-# =========================
-# 🎨 TEMPLATES
-# =========================
+# ================================
+# TEMPLATES
+# ================================
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -81,34 +72,20 @@ TEMPLATES = [
     },
 ]
 
-
-# =========================
-# 🗄️ BANCO DE DADOS
-# =========================
+# ================================
+# DATABASE (POSTGRES)
+# ================================
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,
+        ssl_require=True
+    )
 }
 
-# 🔥 FUTURO (Postgres no Render)
-# usar DATABASE_URL depois
-
-
-# =========================
-# 🌎 INTERNACIONALIZAÇÃO
-# =========================
-LANGUAGE_CODE = 'pt-br'
-TIME_ZONE = 'America/Sao_Paulo'
-
-USE_I18N = True
-USE_TZ = True
-
-
-# =========================
-# 🔐 SENHAS
-# =========================
+# ================================
+# PASSWORD VALIDATION
+# ================================
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -116,46 +93,47 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+# ================================
+# LANGUAGE
+# ================================
+LANGUAGE_CODE = 'pt-br'
+TIME_ZONE = 'America/Sao_Paulo'
 
-# =========================
-# 📂 STATIC FILES
-# =========================
+USE_I18N = True
+USE_TZ = True
+
+# ================================
+# STATIC FILES
+# ================================
 STATIC_URL = '/static/'
-
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# 🔥 WhiteNoise em produção
-if not DEBUG:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-
-# =========================
-# 🧠 DEFAULT FIELD
-# =========================
+# ================================
+# DEFAULT PK
+# ================================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# ================================
+# SECURITY PRODUÇÃO
+# ================================
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
-# =========================
-# 🔐 LOGIN
-# =========================
-LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/painel/'
-LOGOUT_REDIRECT_URL = '/login/'
-
-
-# =========================
-# 🔗 TWILIO (Render ENV)
-# =========================
-TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
-TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
-TWILIO_WHATSAPP_NUMBER = os.getenv("TWILIO_WHATSAPP_NUMBER")
-
-
-# =========================
-# 🤖 OPENAI (Render ENV)
-# =========================
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# ================================
+# LOG
+# ================================
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler'},
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
