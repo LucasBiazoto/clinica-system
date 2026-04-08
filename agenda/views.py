@@ -7,17 +7,20 @@ from .models import ConversaWhatsApp
 from pacientes.models import Paciente
 from usuarios.models import Clinica
 
+from .ia import gerar_resposta, eh_agendamento
+
 
 # =========================
-# 🔹 WEBHOOK WHATSAPP
+# 🔹 WEBHOOK WHATSAPP (IA + HUMANO)
 # =========================
 @csrf_exempt
 def webhook_whatsapp(request):
     if request.method == "POST":
         try:
             telefone = request.POST.get("From", "").replace("whatsapp:", "")
-            mensagem = request.POST.get("Body", "").lower()
+            mensagem = request.POST.get("Body", "").strip()
 
+            # 🔹 busca clínica
             clinica = Clinica.objects.first()
             if not clinica:
                 return HttpResponse("""
@@ -26,6 +29,7 @@ def webhook_whatsapp(request):
                     </Response>
                 """, content_type="text/xml")
 
+            # 🔹 busca ou cria paciente
             paciente, _ = Paciente.objects.get_or_create(
                 telefone=telefone,
                 defaults={"clinica": clinica}
@@ -35,13 +39,21 @@ def webhook_whatsapp(request):
                 paciente.clinica = clinica
                 paciente.save()
 
-            if "agendamento" in mensagem:
-                resposta = "Perfeito 😊 Vou te encaminhar para nosso atendimento humano."
-            elif "oi" in mensagem or "olá" in mensagem:
-                resposta = "Olá 😊 Em breve nossa equipe irá te atender."
-            else:
-                resposta = "Recebemos sua mensagem 😊"
+            mensagem_lower = mensagem.lower()
 
+            # =========================
+            # 🔥 LÓGICA HÍBRIDA
+            # =========================
+
+            # 👉 AGENDAMENTO → HUMANO
+            if eh_agendamento(mensagem_lower):
+                resposta = "Perfeito 😊 Vou te encaminhar para nossa equipe finalizar seu agendamento."
+
+            # 👉 IA RESPONDE
+            else:
+                resposta = gerar_resposta(mensagem)
+
+            # 🔹 salva conversa
             ConversaWhatsApp.objects.create(
                 paciente=paciente,
                 clinica=clinica,
@@ -49,6 +61,7 @@ def webhook_whatsapp(request):
                 resposta=resposta
             )
 
+            # 🔹 responde Twilio
             return HttpResponse(f"""
                 <Response>
                     <Message>{resposta}</Message>
@@ -57,6 +70,7 @@ def webhook_whatsapp(request):
 
         except Exception as e:
             print("ERRO REAL:", e)
+
             return HttpResponse("""
                 <Response>
                     <Message>Erro interno. Tente novamente.</Message>
@@ -105,7 +119,7 @@ def visualizar_conversa(request, paciente_id):
 
 
 # =========================
-# 🔹 RESPONDER
+# 🔹 RESPONDER (HUMANO)
 # =========================
 @login_required
 def responder_conversa(request, paciente_id):
