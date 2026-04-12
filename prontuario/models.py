@@ -2,7 +2,6 @@ from django.db import models
 from pacientes.models import Paciente
 from medicos.models import Medico
 
-
 class Prontuario(models.Model):
     paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE)
     medico = models.ForeignKey(Medico, on_delete=models.CASCADE)

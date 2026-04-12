@@ -4,13 +4,12 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY
 SECRET_KEY = os.getenv('SECRET_KEY', 'unsafe-secret-key')
+
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
-# APPS
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -19,7 +18,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # seus apps
     'usuarios',
     'pacientes',
     'medicos',
@@ -40,7 +38,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'clinica_system.urls'
+ROOT_URLCONF = 'core.urls'
 
 TEMPLATES = [
     {
@@ -58,9 +56,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'clinica_system.wsgi.application'
+WSGI_APPLICATION = 'core.wsgi.application'
 
-# DATABASE (Render PostgreSQL)
 DATABASES = {
     'default': dj_database_url.config(
         default=os.getenv('DATABASE_URL'),
@@ -68,20 +65,13 @@ DATABASES = {
     )
 }
 
-# PASSWORD
-AUTH_PASSWORD_VALIDATORS = []
-
-# LANGUAGE
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
-USE_I18N = True
 USE_TZ = True
 
-# STATIC
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# DEFAULT
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
