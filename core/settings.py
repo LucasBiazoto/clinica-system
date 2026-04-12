@@ -2,6 +2,9 @@ import os
 from pathlib import Path
 import dj_database_url
 
+# ================================
+# BASE
+# ================================
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ================================
@@ -14,7 +17,7 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
 # ================================
-# APPS
+# APPLICATIONS
 # ================================
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -24,12 +27,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # seus apps
+    # SEUS APPS
     'agenda',
     'financeiro',
     'medicos',
     'pacientes',
     'prontuario',
+    'usuarios',   # 🔥 CORRIGIDO (estava faltando)
 ]
 
 # ================================
@@ -48,7 +52,7 @@ MIDDLEWARE = [
 ]
 
 # ================================
-# URLS
+# URLS / WSGI
 # ================================
 ROOT_URLCONF = 'core.urls'
 WSGI_APPLICATION = 'core.wsgi.application'
@@ -73,15 +77,26 @@ TEMPLATES = [
 ]
 
 # ================================
-# DATABASE (POSTGRES)
+# DATABASE (POSTGRES + FALLBACK LOCAL)
 # ================================
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
-        conn_max_age=600,
-        ssl_require=True
-    )
-}
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+else:
+    # fallback local (evita erro em dev)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # ================================
 # PASSWORD VALIDATION
@@ -124,7 +139,7 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
 
 # ================================
-# LOG
+# LOGGING
 # ================================
 LOGGING = {
     'version': 1,
