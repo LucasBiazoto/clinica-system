@@ -2,23 +2,15 @@ import os
 from pathlib import Path
 import dj_database_url
 
-# ================================
-# BASE
-# ================================
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ================================
 # SECURITY
-# ================================
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev')
-
+SECRET_KEY = os.getenv('SECRET_KEY', 'unsafe-secret-key')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
-# ================================
-# APPLICATIONS
-# ================================
+# APPS
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -27,18 +19,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # SEUS APPS
+    # seus apps
+    'usuarios',
+    'pacientes',
+    'medicos',
     'agenda',
     'financeiro',
-    'medicos',
-    'pacientes',
     'prontuario',
-    'usuarios',   # 🔥 CORRIGIDO (estava faltando)
 ]
 
-# ================================
-# MIDDLEWARE
-# ================================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -51,15 +40,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# ================================
-# URLS / WSGI
-# ================================
-ROOT_URLCONF = 'core.urls'
-WSGI_APPLICATION = 'core.wsgi.application'
+ROOT_URLCONF = 'clinica_system.urls'
 
-# ================================
-# TEMPLATES
-# ================================
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -76,79 +58,30 @@ TEMPLATES = [
     },
 ]
 
-# ================================
-# DATABASE (POSTGRES + FALLBACK LOCAL)
-# ================================
-DATABASE_URL = os.getenv('DATABASE_URL')
+WSGI_APPLICATION = 'clinica_system.wsgi.application'
 
-if DATABASE_URL:
-    DATABASES = {
-        'default': dj_database_url.parse(
-            DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=True
-        )
-    }
-else:
-    # fallback local (evita erro em dev)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+# DATABASE (Render PostgreSQL)
+DATABASES = {
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600
+    )
+}
 
-# ================================
-# PASSWORD VALIDATION
-# ================================
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
+# PASSWORD
+AUTH_PASSWORD_VALIDATORS = []
 
-# ================================
 # LANGUAGE
-# ================================
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
-
 USE_I18N = True
 USE_TZ = True
 
-# ================================
-# STATIC FILES
-# ================================
+# STATIC
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# ================================
-# DEFAULT PK
-# ================================
+# DEFAULT
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# ================================
-# SECURITY PRODUÇÃO
-# ================================
-if not DEBUG:
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-
-# ================================
-# LOGGING
-# ================================
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {'class': 'logging.StreamHandler'},
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
-    },
-}

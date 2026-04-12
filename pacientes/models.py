@@ -1,11 +1,10 @@
 from django.db import models
-from usuarios.models import Clinica
 
 class Paciente(models.Model):
-    clinica = models.ForeignKey(Clinica, on_delete=models.CASCADE)
-
-    nome = models.CharField(max_length=200, blank=True, null=True)
+    nome = models.CharField(max_length=255)
+    cpf = models.CharField(max_length=14)
     telefone = models.CharField(max_length=20)
+    email = models.EmailField(blank=True, null=True)
 
     def __str__(self):
-        return self.telefone
+        return self.nome
