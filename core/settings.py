@@ -2,17 +2,17 @@ import os
 from pathlib import Path
 import dj_database_url
 
-# BASE DIR (ERRO QUE VOCÊ TEVE)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SEGURANÇA
-SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key')
+# 🔐 SEGURANÇA
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key')
 
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
-# APPS
+
+# 📦 APPS
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -21,16 +21,18 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # seus apps
+    'agenda',
     'pacientes',
     'usuarios',
-    'agenda',
-    
 ]
 
-# MIDDLEWARE
+
+# ⚙️ MIDDLEWARE
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # 👈 importante pro Render
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -39,13 +41,16 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+
+# 🌐 URLS
 ROOT_URLCONF = 'core.urls'
 
-# TEMPLATES (ERRO QUE VOCÊ TEVE)
+
+# 🎨 TEMPLATES
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # correto
+        'DIRS': [BASE_DIR / 'templates'],  # 👈 ESSENCIAL
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -58,31 +63,50 @@ TEMPLATES = [
     },
 ]
 
+
+# 🚀 WSGI
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# BANCO (LOCAL + RENDER)
-DATABASE_URL = os.environ.get('DATABASE_URL')
 
-if DATABASE_URL:
-    DATABASES = {
-        'default': dj_database_url.parse(DATABASE_URL)
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+# 🗄️ BANCO DE DADOS (Render + local fallback)
+DATABASES = {
+    'default': dj_database_url.parse(
+        os.environ.get('DATABASE_URL', f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
+    )
+}
 
-# LOCALE
+
+# 🔒 SENHAS
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+]
+
+
+# 🌍 IDIOMA
 LANGUAGE_CODE = 'pt-br'
+
 TIME_ZONE = 'America/Sao_Paulo'
+
 USE_I18N = True
 USE_TZ = True
 
 
+# 📁 STATIC
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
+# 📁 MEDIA (opcional)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+# 🔑 DEFAULT
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
