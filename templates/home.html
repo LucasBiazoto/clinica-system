@@ -1,62 +1,74 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Clínica System</title>
+{% extends 'base.html' %}
 
-    <style>
-        body {
-            font-family: Arial;
-            background: #f5f6fa;
-            text-align: center;
-            margin: 0;
-        }
+{% block content %}
 
-        header {
-            background: #2c3e50;
-            color: white;
-            padding: 20px;
-        }
+<div class="row">
 
-        .container {
-            margin-top: 40px;
-        }
+    <!-- Título -->
+    <div class="col-12 mb-4">
+        <h2>📊 Dashboard</h2>
+        <p class="text-muted">Visão geral do sistema</p>
+    </div>
 
-        .card {
-            background: white;
-            padding: 20px;
-            margin: 20px auto;
-            width: 300px;
-            border-radius: 10px;
-            box-shadow: 0px 5px 10px rgba(0,0,0,0.1);
-        }
+    <!-- Cards -->
+    <div class="col-md-4">
+        <div class="card shadow text-center p-3">
+            <h5>Total de Pacientes</h5>
+            <h2 class="text-primary">{{ total_pacientes }}</h2>
+        </div>
+    </div>
 
-        a {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 10px 20px;
-            background: #3498db;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-    </style>
-</head>
+    <div class="col-md-4">
+        <div class="card shadow text-center p-3">
+            <h5>Consultas (futuro)</h5>
+            <h2 class="text-success">0</h2>
+        </div>
+    </div>
 
-<body>
-
-<header>
-    <h1>🏥 Sistema da Clínica</h1>
-</header>
-
-<div class="container">
-
-    <div class="card">
-        <h2>Admin</h2>
-        <a href="/admin/">Entrar</a>
+    <div class="col-md-4">
+        <div class="card shadow text-center p-3">
+            <h5>Financeiro (futuro)</h5>
+            <h2 class="text-warning">R$ 0</h2>
+        </div>
     </div>
 
 </div>
 
-</body>
-</html>
+<hr>
+
+<!-- Ações rápidas -->
+<div class="row mt-4">
+
+    <div class="col-md-4">
+        <div class="card text-center shadow">
+            <div class="card-body">
+                <h5 class="card-title">Pacientes</h5>
+                <p class="card-text">Gerenciar pacientes</p>
+                <a href="/pacientes/" class="btn btn-primary">Acessar</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center shadow">
+            <div class="card-body">
+                <h5 class="card-title">Admin</h5>
+                <p class="card-text">Painel Django</p>
+                <a href="/admin/" class="btn btn-warning">Entrar</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center shadow">
+            <div class="card-body">
+                <h5 class="card-title">Sair</h5>
+                <p class="card-text">Encerrar sessão</p>
+                <a href="/usuarios/logout/" class="btn btn-danger">Logout</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

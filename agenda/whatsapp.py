@@ -1,26 +1,17 @@
-from .whatsapp import enviar_whatsapp
-from django.shortcuts import redirect
-from .models import ConversaWhatsApp
+from django.http import HttpResponse
+from .models import ConversaWhatsapp
 
 
-def responder_conversa(request, paciente_id):
+def webhook_whatsapp(request):
     if request.method == 'POST':
-        mensagem = request.POST.get('mensagem')
+        numero = request.POST.get('From')
+        mensagem = request.POST.get('Body')
 
-        conversa = ConversaWhatsApp.objects.filter(
-            paciente__id=paciente_id
-        ).last()
+        ConversaWhatsapp.objects.create(
+            numero=numero,
+            mensagem=mensagem
+        )
 
-        if conversa:
-            numero = conversa.paciente.telefone
+        return HttpResponse("Recebido com sucesso 🚀")
 
-            # 🔥 ENVIO REAL
-            enviado = enviar_whatsapp(numero, mensagem)
-
-            if enviado:
-                conversa.resposta = mensagem
-                conversa.save()
-            else:
-                print("Falha ao enviar mensagem")
-
-    return redirect('painel')
+    return HttpResponse("OK")
