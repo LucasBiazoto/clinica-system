@@ -23,6 +23,7 @@ INSTALLED_APPS = [
 
     'pacientes',
     'usuarios',
+    'agenda',
     
 ]
 
